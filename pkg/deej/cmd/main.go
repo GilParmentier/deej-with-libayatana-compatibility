@@ -13,18 +13,21 @@ var (
 	buildType  string
 
 	verbose bool
+	debug   bool
 )
 
 func init() {
 	flag.BoolVar(&verbose, "verbose", false, "show verbose logs (useful for debugging serial)")
 	flag.BoolVar(&verbose, "v", false, "shorthand for --verbose")
+	flag.BoolVar(&debug, "debug", false, "show debug logs (useful for debugging audio session detection), even in release builds")
+	flag.BoolVar(&debug, "d", false, "shorthand for --debug")
 	flag.Parse()
 }
 
 func main() {
 
 	// first we need a logger
-	logger, err := deej.NewLogger(buildType)
+	logger, err := deej.NewLogger(buildType, debug)
 	if err != nil {
 		panic(fmt.Sprintf("Failed to create logger: %v", err))
 	}
@@ -40,6 +43,10 @@ func main() {
 	// provide a fair warning if the user's running in verbose mode
 	if verbose {
 		named.Debug("Verbose flag provided, all log messages will be shown")
+	}
+
+	if debug {
+		named.Debug("Debug flag provided, debug logs will be shown even in a release build")
 	}
 
 	// create the deej instance

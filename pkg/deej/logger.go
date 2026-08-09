@@ -20,7 +20,7 @@ const (
 )
 
 // NewLogger provides a logger instance for the whole program
-func NewLogger(buildType string) (*zap.SugaredLogger, error) {
+func NewLogger(buildType string, debug bool) (*zap.SugaredLogger, error) {
 	var loggerConfig zap.Config
 
 	// release: info and above, log to file only (no UI)
@@ -33,6 +33,14 @@ func NewLogger(buildType string) (*zap.SugaredLogger, error) {
 
 		loggerConfig.OutputPaths = []string{filepath.Join(logDirectory, logFilename)}
 		loggerConfig.Encoding = "console"
+
+		// --debug was passed: even in a release build, also show debug-level
+		// logs and mirror them to stderr (visible via a terminal, or via
+		// `journalctl --user -u deej` when running as a systemd service)
+		if debug {
+			loggerConfig.Level = zap.NewAtomicLevelAt(zapcore.DebugLevel)
+			loggerConfig.OutputPaths = append(loggerConfig.OutputPaths, "stderr")
+		}
 
 		// development: debug and above, log to stderr only, colorful
 	} else {
